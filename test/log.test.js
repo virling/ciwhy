@@ -46,3 +46,8 @@ test("output is capped", () => {
   const lines = Array.from({ length: 200 }, (_, i) => `Error: failure number ${i}`);
   assert.equal(extractErrors(lines).length, MAX_LINES);
 });
+
+test("runner boilerplate around an error is dropped", () => {
+  const lines = ["Prepare all required actions", "Complete job name: test", "shell: /usr/bin/bash -e {0}", "Error: boom", "##[error]Process completed with exit code 1.", "Cleaning up orphan processes"];
+  assert.deepEqual(extractErrors(lines), ["Error: boom", "##[error]Process completed with exit code 1."]);
+});
