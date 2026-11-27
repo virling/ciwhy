@@ -1,0 +1,9 @@
+﻿2026-03-14T09:12:00.0000000Z ##[group]Run python build.py
+2026-03-14T09:12:01.0007919Z python build.py
+2026-03-14T09:12:02.0015838Z ##[endgroup]
+2026-03-14T09:12:03.0023757Z Building wheel...
+2026-03-14T09:12:04.0031676Z Traceback (most recent call last):
+2026-03-14T09:12:05.0039595Z   File "/home/runner/work/widget/widget/build.py", line 8, in <module>
+2026-03-14T09:12:06.0047514Z     main()
+2026-03-14T09:12:07.0055433Z KeyError: 'VERSION'
+2026-03-14T09:12:08.0063352Z ##[error]Process completed with exit code 1.

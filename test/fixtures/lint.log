@@ -1,0 +1,14 @@
+﻿2026-03-14T09:12:00.0000000Z ##[group]Run npm run lint
+2026-03-14T09:12:01.0007919Z npm run lint
+2026-03-14T09:12:02.0015838Z ##[endgroup]
+2026-03-14T09:12:03.0023757Z 
+2026-03-14T09:12:04.0031676Z /home/runner/work/widget/widget/src/cache.js
+2026-03-14T09:12:05.0039595Z   12:7  [31merror[39m  'tmp' is assigned a value but never used  no-unused-vars
+2026-03-14T09:12:06.0047514Z   30:1  [31merror[39m  Unexpected console statement             no-console
+2026-03-14T09:12:07.0055433Z 
+2026-03-14T09:12:08.0063352Z [31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m
+2026-03-14T09:12:09.0071271Z 
+2026-03-14T09:12:10.0079190Z npm ERR! Lifecycle script `lint` failed with error:
+2026-03-14T09:12:11.0087109Z npm ERR! Error: command failed
+2026-03-14T09:12:12.0095028Z npm ERR! Error: command failed
+2026-03-14T09:12:13.0102947Z ##[error]Process completed with exit code 1.

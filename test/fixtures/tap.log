@@ -1,0 +1,59 @@
+﻿2026-03-14T09:12:00.0000000Z Current runner version: '2.330.0'
+2026-03-14T09:12:01.0007919Z ##[group]Operating System
+2026-03-14T09:12:02.0015838Z macOS
+2026-03-14T09:12:03.0023757Z ##[endgroup]
+2026-03-14T09:12:04.0031676Z ##[group]Run npm test
+2026-03-14T09:12:05.0039595Z [36;1mnpm test[0m
+2026-03-14T09:12:06.0047514Z ##[endgroup]
+2026-03-14T09:12:07.0055433Z 
+2026-03-14T09:12:08.0063352Z > widget@1.2.0 test
+2026-03-14T09:12:09.0071271Z > node --test
+2026-03-14T09:12:10.0079190Z 
+2026-03-14T09:12:11.0087109Z TAP version 13
+2026-03-14T09:12:12.0095028Z # Subtest: parses config files
+2026-03-14T09:12:13.0102947Z ok 1 - parses config files
+2026-03-14T09:12:14.0110866Z   ---
+2026-03-14T09:12:15.0118785Z   duration_ms: 12.5
+2026-03-14T09:12:16.0126704Z   ...
+2026-03-14T09:12:17.0134623Z # Subtest: unpacks archives
+2026-03-14T09:12:18.0142542Z ok 2 - unpacks archives
+2026-03-14T09:12:19.0150461Z   ---
+2026-03-14T09:12:20.0158380Z   duration_ms: 40.1
+2026-03-14T09:12:21.0166299Z   ...
+2026-03-14T09:12:22.0174218Z # widget: spawnSync unzip EPIPE
+2026-03-14T09:12:23.0182137Z # Subtest: caches downloads
+2026-03-14T09:12:24.0190056Z ok 3 - caches downloads
+2026-03-14T09:12:25.0197975Z   ---
+2026-03-14T09:12:26.0205894Z   duration_ms: 8.2
+2026-03-14T09:12:27.0213813Z   ...
+2026-03-14T09:12:28.0221732Z # Subtest: restores the cache after a restart
+2026-03-14T09:12:29.0229651Z not ok 4 - restores the cache after a restart
+2026-03-14T09:12:30.0237570Z   ---
+2026-03-14T09:12:31.0245489Z   duration_ms: 310.7
+2026-03-14T09:12:32.0253408Z   location: 'file:///Users/runner/work/widget/widget/test/cache.test.js:42:1'
+2026-03-14T09:12:33.0261327Z   failureType: 'testCodeFailure'
+2026-03-14T09:12:34.0269246Z   error: |-
+2026-03-14T09:12:35.0277165Z     Expected values to be strictly equal:
+2026-03-14T09:12:36.0285084Z     
+2026-03-14T09:12:37.0293003Z     '' !== 'restored'
+2026-03-14T09:12:38.0300922Z     
+2026-03-14T09:12:39.0308841Z   code: 'ERR_ASSERTION'
+2026-03-14T09:12:40.0316760Z   stack: |-
+2026-03-14T09:12:41.0324679Z     TestContext.<anonymous> (file:///Users/runner/work/widget/widget/test/cache.test.js:51:12)
+2026-03-14T09:12:42.0332598Z     Test.runInAsyncScope (node:async_hooks:206:9)
+2026-03-14T09:12:43.0340517Z     Test.run (node:internal/test_runner/test:631:25)
+2026-03-14T09:12:44.0348436Z   ...
+2026-03-14T09:12:45.0356355Z # Subtest: prunes old entries
+2026-03-14T09:12:46.0364274Z ok 5 - prunes old entries
+2026-03-14T09:12:47.0372193Z   ---
+2026-03-14T09:12:48.0380112Z   duration_ms: 3.0
+2026-03-14T09:12:49.0388031Z   ...
+2026-03-14T09:12:50.0395950Z 1..5
+2026-03-14T09:12:51.0403869Z # tests 5
+2026-03-14T09:12:52.0411788Z # pass 4
+2026-03-14T09:12:53.0419707Z # fail 1
+2026-03-14T09:12:54.0427626Z # duration_ms 520.3
+2026-03-14T09:12:55.0435545Z [31m##[error]Process completed with exit code 1.[0m
+2026-03-14T09:12:56.0443464Z Post job cleanup.
+2026-03-14T09:12:57.0451383Z [command]/usr/bin/git version
+2026-03-14T09:12:58.0459302Z Cleaning up orphan processes

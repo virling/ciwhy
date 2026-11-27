@@ -1,0 +1,58 @@
+{
+  "repos/acme/widget": { "default_branch": "main" },
+  "repos/acme/widget/pulls/7": { "head": { "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "ref": "feature/x" } },
+  "repos/acme/widget/actions/runs/100": {
+    "id": 100, "name": "ci", "workflow_id": 7, "run_attempt": 2, "status": "completed", "conclusion": "success",
+    "head_branch": "main", "head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "created_at": "2026-03-14T09:10:00Z",
+    "html_url": "https://github.com/acme/widget/actions/runs/100"
+  },
+  "repos/acme/widget/actions/runs/100/jobs?filter=all&per_page=100": {
+    "jobs": [
+      { "id": 1001, "name": "test (macos-latest, 20)", "run_attempt": 1, "conclusion": "failure", "html_url": "https://github.com/acme/widget/actions/runs/100/job/1001",
+        "steps": [{ "name": "Set up job", "conclusion": "success" }, { "name": "Run npm test", "conclusion": "failure" }, { "name": "Complete job", "conclusion": "success" }] },
+      { "id": 1002, "name": "test (ubuntu-latest, 20)", "run_attempt": 1, "conclusion": "success", "html_url": "https://github.com/acme/widget/actions/runs/100/job/1002", "steps": [] },
+      { "id": 1101, "name": "test (macos-latest, 20)", "run_attempt": 2, "conclusion": "success", "html_url": "https://github.com/acme/widget/actions/runs/100/job/1101", "steps": [] }
+    ]
+  },
+  "repos/acme/widget/actions/runs?branch=feature%2Fx&status=failure&per_page=1": { "workflow_runs": [{ "id": 200 }] },
+  "repos/acme/widget/actions/runs?branch=quiet&status=failure&per_page=1": { "workflow_runs": [] },
+  "repos/acme/widget/actions/runs?head_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&status=failure&per_page=1": { "workflow_runs": [{ "id": 200 }] },
+  "repos/acme/widget/actions/runs/200": {
+    "id": 200, "name": "ci", "workflow_id": 7, "run_attempt": 1, "status": "completed", "conclusion": "failure",
+    "head_branch": "feature/x", "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "created_at": "2026-03-15T10:00:00Z",
+    "html_url": "https://github.com/acme/widget/actions/runs/200"
+  },
+  "repos/acme/widget/actions/runs/200/jobs?filter=all&per_page=100": {
+    "jobs": [
+      { "id": 2001, "name": "lint", "run_attempt": 1, "conclusion": "failure", "html_url": "https://github.com/acme/widget/actions/runs/200/job/2001",
+        "steps": [{ "name": "Set up job", "conclusion": "success" }, { "name": "Lint", "conclusion": "failure" }] },
+      { "id": 2002, "name": "build", "run_attempt": 1, "conclusion": "failure", "html_url": "https://github.com/acme/widget/actions/runs/200/job/2002",
+        "steps": [{ "name": "Build wheel", "conclusion": "failure" }] },
+      { "id": 2003, "name": "test (macos-latest, 20)", "run_attempt": 1, "conclusion": "failure", "html_url": "https://github.com/acme/widget/actions/runs/200/job/2003",
+        "steps": [{ "name": "Run npm test", "conclusion": "failure" }] },
+      { "id": 2004, "name": "docs", "run_attempt": 1, "conclusion": "cancelled", "html_url": "https://github.com/acme/widget/actions/runs/200/job/2004", "steps": [] }
+    ]
+  },
+  "repos/acme/widget/actions/runs?head_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&per_page=100": {
+    "workflow_runs": [{ "id": 200, "workflow_id": 7 }, { "id": 201, "workflow_id": 7 }, { "id": 202, "workflow_id": 9 }]
+  },
+  "repos/acme/widget/actions/runs/201/jobs?filter=all&per_page=100": {
+    "jobs": [
+      { "id": 2101, "name": "lint", "run_attempt": 1, "conclusion": "failure" },
+      { "id": 2103, "name": "test (macos-latest, 20)", "run_attempt": 1, "conclusion": "success" }
+    ]
+  },
+  "repos/acme/widget/actions/workflows/7/runs?branch=main&status=completed&per_page=20": {
+    "workflow_runs": [
+      { "id": 300, "created_at": "2026-03-16T08:00:00Z" },
+      { "id": 150, "created_at": "2026-03-14T12:00:00Z" },
+      { "id": 140, "created_at": "2026-03-13T12:00:00Z" }
+    ]
+  },
+  "repos/acme/widget/actions/runs/150/jobs?per_page=100": {
+    "jobs": [
+      { "id": 1501, "name": "lint", "run_attempt": 1, "conclusion": "success" },
+      { "id": 1502, "name": "build", "run_attempt": 1, "conclusion": "failure" }
+    ]
+  }
+}
