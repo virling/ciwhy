@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-27
+
 ### Fixed
 
 - A job whose log GitHub has deleted (after about 90 days) is shown as `log unavailable` instead of stopping the whole report.
@@ -16,5 +18,6 @@ All notable changes to this project are documented here. The format follows [Kee
 - Flaky verdict per job: passed on a later attempt, passed on another run of the same commit, or new since the last default-branch run.
 - Pick a run by id, URL, `--pr` or `--branch`; `--rerun` re-runs failed jobs and reports the result; `--json` output.
 
-[Unreleased]: https://github.com/virling/ciwhy/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/virling/ciwhy/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/virling/ciwhy/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/virling/ciwhy/releases/tag/v0.1.0
