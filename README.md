@@ -64,6 +64,13 @@ Exit code is 0 after a report, even when jobs failed. It is non-zero only for us
 - Node.js 20 or newer
 - [GitHub CLI](https://cli.github.com/) (`gh`), authenticated with `gh auth login`
 
+## More tools from Virling
+
+- [agentmem](https://github.com/virling/agentmem): project memory for AI coding agents, shared across Claude Code, Cursor, Codex and other MCP clients.
+- [ccdoctor](https://github.com/virling/ccdoctor): checks your Claude Code setup: hooks, MCP servers and plugins that are registered but not working.
+- [npmship](https://github.com/virling/npmship): releases an npm package and verifies it landed on npm, in CI and on GitHub.
+- [subagents](https://github.com/virling/subagents): reviews what Claude Code subagents did in a session and flags repeated or wasted work.
+
 ## License
 
 [PolyForm Noncommercial 1.0.0](LICENSE)
