@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { test } from "node:test";
-import { analyze, findRun, parseTarget, render, rerun } from "../src/ciwhy.js";
+import { analyze, findRun, parseTarget, render, renderMarkdown, rerun } from "../src/ciwhy.js";
 
 const fixture = (name) => fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url), "utf8");
 const API = JSON.parse(fixture("api.json"));
@@ -104,4 +106,53 @@ test("cli prints help and rejects bad usage", () => {
   assert.equal(bad.status, 2);
   assert.match(bad.stderr, /unknown or incomplete option --nope/);
   assert.equal(spawnSync("node", [bin, "not-a-run"], { encoding: "utf8" }).status, 2);
+});
+
+test("renderMarkdown shows one job inline with the marker, verdict and log lines", () => {
+  const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"]);
+  const md = renderMarkdown(report);
+  assert.ok(md.startsWith("<!-- ciwhy -->\n### ciwhy: 1 failed job in [ci run 100]("));
+  assert.match(md, /\*\*test \(macos-latest, 20\), attempt 1, step: Run npm test\*\*\n\n\*\*flaky\*\*: passed on attempt 2 of this run\. \[Job log\]\(/);
+  assert.match(md, /```text\n[^]*# widget: spawnSync unzip EPIPE[^]*\n```$/);
+  assert.doesNotMatch(md, /<details>/);
+});
+
+test("renderMarkdown folds several jobs and stays under the limit", () => {
+  const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/200"]);
+  const md = renderMarkdown(report);
+  assert.equal(md.match(/<details><summary>/g).length, 3);
+  assert.match(md, /<summary><b>lint, attempt 1, step: Lint<\/b> \(new failure\)<\/summary>/);
+  const big = { ...report, jobs: report.jobs.map((j) => ({ ...j, lines: Array.from({ length: 5000 }, (_, i) => `line ${i} ${"x".repeat(40)}`) })) };
+  const cut = renderMarkdown(big);
+  assert.ok(cut.length < 65536, `length ${cut.length}`);
+  assert.match(cut, /\.\.\. \d+ more lines cut to fit the comment\n```/);
+});
+
+test("renderMarkdown uses a longer fence when log lines contain backticks", () => {
+  const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"]);
+  report.jobs[0].lines = ["see ```js block```"];
+  assert.match(renderMarkdown(report), /````text\nsee ```js block```\n````/);
+});
+
+function runComment(env, existing) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ciwhy-"));
+  const log = path.join(dir, "gh.log");
+  fs.writeFileSync(path.join(dir, "report.md"), "<!-- ciwhy -->\nreport");
+  fs.writeFileSync(
+    path.join(dir, "gh"),
+    `#!/usr/bin/env bash\necho "$*" >> "${log}"\ncase "$*" in\n  *commits/*/pulls*) echo 42 ;;\n  *--paginate*) printf '%s\\n' ${existing.join(" ")} ;;\nesac\n`,
+    { mode: 0o755 },
+  );
+  const script = new URL("../action/comment.sh", import.meta.url).pathname;
+  execFileSync("bash", [script], { env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, REPO, SHA: "abc", REPORT: path.join(dir, "report.md"), ...env } });
+  return fs.readFileSync(log, "utf8").trim().split("\n");
+}
+
+test("comment.sh updates the existing ciwhy comment or creates one", () => {
+  const patched = runComment({ PRS: "7" }, ["3", "5"]);
+  assert.equal(patched[0], "api repos/acme/widget/issues/7/comments --paginate --jq .[] | select(.body | contains(\"<!-- ciwhy -->\")) | .id");
+  assert.ok(patched[1].startsWith("api -X PATCH repos/acme/widget/issues/comments/5 -F body=@"));
+  const posted = runComment({ PRS: "" }, []);
+  assert.equal(posted[0], "api repos/acme/widget/commits/abc/pulls --jq .[].number");
+  assert.ok(posted[2].startsWith("api -X POST repos/acme/widget/issues/42/comments -F body=@"));
 });

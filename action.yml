@@ -1,0 +1,42 @@
+name: ciwhy
+description: When CI fails on a pull request, comment with the failing step, the relevant log lines, and whether it looks flaky
+author: Virling
+branding:
+  icon: alert-circle
+  color: red
+
+inputs:
+  run-id:
+    description: Workflow run to explain
+    default: ${{ github.event.workflow_run.id || github.run_id }}
+  github-token:
+    description: Token used to read the run and comment on the pull request
+    default: ${{ github.token }}
+  comment:
+    description: Comment the report on the pull request (it always goes to the job summary)
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+    - name: Explain the failed run
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        RUN_ID: ${{ inputs.run-id }}
+      run: |
+        node "$GITHUB_ACTION_PATH/bin/ciwhy.js" "$RUN_ID" --repo "$GITHUB_REPOSITORY" --markdown > "$RUNNER_TEMP/ciwhy.md"
+        cat "$RUNNER_TEMP/ciwhy.md" >> "$GITHUB_STEP_SUMMARY"
+    - name: Comment on the pull request
+      if: inputs.comment == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        REPO: ${{ github.repository }}
+        SHA: ${{ github.event.workflow_run.head_sha || github.event.pull_request.head.sha || github.sha }}
+        PRS: ${{ github.event.pull_request.number || join(github.event.workflow_run.pull_requests.*.number, ' ') }}
+        REPORT: ${{ runner.temp }}/ciwhy.md
+      run: bash "$GITHUB_ACTION_PATH/action/comment.sh"

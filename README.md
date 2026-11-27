@@ -54,10 +54,56 @@ ciwhy --branch <name>      latest failed run on a branch
 --rerun                    re-run the failed jobs, wait, and report if they pass
 --timeout <minutes>        how long --rerun waits (default 30)
 --json                     machine-readable output
+--markdown                 Markdown report, as posted on pull requests by the GitHub Action
 --help
 ```
 
 Exit code is 0 after a report, even when jobs failed. It is non-zero only for usage errors (2) or `gh` errors (1).
+
+## GitHub Action
+
+When CI fails on a pull request, `virling/ciwhy@v0` posts the report as a comment on the PR, and updates the same comment on later failures. The report also goes to the job summary.
+
+For pull requests from branches in the same repository, add a job after your tests:
+
+```yaml
+  ciwhy:
+    needs: test
+    if: failure() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: virling/ciwhy@v0
+```
+
+Pull requests from forks get a read-only token, so they cannot comment. Use a separate workflow that runs after CI instead:
+
+```yaml
+name: ciwhy
+
+on:
+  workflow_run:
+    workflows: [test]
+    types: [completed]
+
+jobs:
+  ciwhy:
+    if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: virling/ciwhy@v0
+```
+
+Inputs, all optional:
+
+- `run-id`: the run to explain. Default: the run that triggered `workflow_run`, otherwise the current run.
+- `github-token`: default `${{ github.token }}`.
+- `comment`: `false` to only write the job summary. Default `true`.
 
 ## Requirements
 
