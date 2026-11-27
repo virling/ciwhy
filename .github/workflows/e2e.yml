@@ -1,0 +1,17 @@
+name: e2e
+on: pull_request
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: node -e "console.error('Error: boom from ciwhy e2e'); process.exit(1)"
+  why:
+    needs: test
+    if: failure() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./

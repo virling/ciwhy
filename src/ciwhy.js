@@ -124,3 +124,41 @@ export function renderRerun(r) {
   const head = r.attempt ? `Re-run attempt ${r.attempt}: ${r.conclusion}` : `Re-run: ${r.conclusion}`;
   return [head, ...r.jobs.map((j) => `  ${j.name}: ${j.conclusion} (${j.verdict})`)].join("\n");
 }
+
+export const MARKER = "<!-- ciwhy -->";
+
+function codeBlock(lines, budget) {
+  const kept = [];
+  let size = 0;
+  for (const l of lines) {
+    if (size + l.length + 1 > budget) break;
+    kept.push(l);
+    size += l.length + 1;
+  }
+  if (kept.length < lines.length) kept.push(`... ${lines.length - kept.length} more lines cut to fit the comment`);
+  const longest = Math.max(0, ...kept.flatMap((l) => l.match(/`+/g) || []).map((s) => s.length));
+  const fence = "`".repeat(Math.max(3, longest + 1));
+  return [fence + "text", ...kept, fence];
+}
+
+// GitHub rejects comments over 65536 characters.
+export function renderMarkdown(report, limit = 65000) {
+  const { run, jobs } = report;
+  const out = [
+    MARKER,
+    `### ciwhy: ${jobs.length} failed job${jobs.length === 1 ? "" : "s"} in [${run.name} run ${run.id}](${run.url})`,
+    `\`${run.branch}\` \`${run.sha.slice(0, 7)}\`, ${run.attempts} attempt${run.attempts === 1 ? "" : "s"}, ${run.conclusion ?? "in progress"}`,
+  ];
+  if (!jobs.length) out.push("", "No failed jobs in any attempt.");
+  if (report.rerun) out.push("", "```text", renderRerun(report.rerun), "```");
+  const budget = Math.floor((limit - out.join("\n").length) / Math.max(1, jobs.length)) - 1000;
+  const many = jobs.length > 1;
+  for (const job of jobs) {
+    const title = `${job.name}, attempt ${job.attempt}${job.step ? `, step: ${job.step}` : ""}`;
+    const empty = job.logError ? `(log unavailable: ${job.logError})` : "(no error lines found in the log)";
+    const body = [`**${job.verdict}**: ${job.evidence}. [Job log](${job.url})`, "", ...codeBlock(job.lines.length ? job.lines : [empty], budget)];
+    if (many) out.push("", `<details><summary><b>${title}</b> (${job.verdict})</summary>`, "", ...body, "", "</details>");
+    else out.push("", `**${title}**`, "", ...body);
+  }
+  return out.join("\n");
+}

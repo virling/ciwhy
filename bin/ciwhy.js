@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
-import { analyze, currentRepo, findRun, gh, parseTarget, render, renderRerun, rerun } from "../src/ciwhy.js";
+import { analyze, currentRepo, findRun, gh, parseTarget, render, renderMarkdown, renderRerun, rerun } from "../src/ciwhy.js";
 
 const HELP = `ciwhy: why did CI fail, and is it flaky?
 
@@ -13,11 +13,12 @@ const HELP = `ciwhy: why did CI fail, and is it flaky?
   --rerun                    re-run the failed jobs, wait, and report if they pass
   --timeout <minutes>        how long --rerun waits (default 30)
   --json                     machine-readable output
+  --markdown                 Markdown report, as posted on pull requests by the GitHub Action
   --help
 
 Requires the GitHub CLI (gh), authenticated.`;
 
-const BOOLEAN_FLAGS = ["rerun", "json", "help"];
+const BOOLEAN_FLAGS = ["rerun", "json", "markdown", "help"];
 const VALUE_FLAGS = ["pr", "branch", "repo", "timeout"];
 
 function usage(message) {
@@ -54,13 +55,15 @@ async function main() {
     return console.log(flags.json ? JSON.stringify({ repo, run: null, jobs: [] }, null, 2) : `No failed runs for ${where} in ${repo}.`);
   }
   const report = analyze(gh, repo, run);
-  if (!flags.json) console.log(render(report));
+  const text = !flags.json && !flags.markdown;
+  if (text) console.log(render(report));
   if (flags.rerun && report.jobs.length) {
-    if (!flags.json) console.log(`\nRe-running failed jobs of run ${run.id} and waiting...`);
+    if (text) console.log(`\nRe-running failed jobs of run ${run.id} and waiting...`);
     report.rerun = await rerun(gh, repo, run, report.jobs.map((j) => j.name), { timeoutMs: (Number(flags.timeout) || 30) * 60000 });
-    if (!flags.json) console.log(renderRerun(report.rerun));
+    if (text) console.log(renderRerun(report.rerun));
   }
   if (flags.json) console.log(JSON.stringify(report, null, 2));
+  else if (flags.markdown) console.log(renderMarkdown(report));
 }
 
 main().catch((e) => {

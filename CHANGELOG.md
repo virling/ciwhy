@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `--markdown` prints a compact Markdown report for pull request comments and job summaries.
+- GitHub Action `virling/ciwhy@v0`: when CI fails on a pull request, it comments the report on the PR and updates that comment on later failures.
+
 ## [0.1.1] - 2026-11-27
 
 ### Fixed
