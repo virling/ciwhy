@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- A job whose log GitHub has deleted (after about 90 days) is shown as `log unavailable` instead of stopping the whole report.
+
 ## [0.1.0] - 2026-11-27
 
 ### Added

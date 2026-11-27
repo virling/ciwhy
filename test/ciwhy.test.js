@@ -61,6 +61,19 @@ test("verdicts use the same commit and the previous default branch run", () => {
   assert.ok(byName.build.lines.includes("KeyError: 'VERSION'"));
 });
 
+test("a missing job log is reported for that job and the rest still run", () => {
+  const { gh: base } = fakeGh();
+  const gh = (args) => {
+    if (args[2]?.endsWith("jobs/2002/logs")) throw Object.assign(new Error("Command failed"), { stderr: "gh: Not Found (HTTP 410)\n" });
+    return base(args);
+  };
+  const report = analyze(gh, REPO, API["repos/acme/widget/actions/runs/200"]);
+  const build = report.jobs.find((j) => j.name === "build");
+  assert.deepEqual([build.lines, build.logError], [[], "gh: Not Found (HTTP 410)"]);
+  assert.ok(report.jobs.find((j) => j.name === "lint").lines.length);
+  assert.match(render(report), /\(log unavailable: gh: Not Found \(HTTP 410\)\)/);
+});
+
 test("rerun waits for the new attempt and reports per job", async () => {
   let polls = 0;
   const { gh, calls } = fakeGh({

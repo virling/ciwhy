@@ -61,6 +61,15 @@ function evidence(gh, repo, target, jobs) {
   };
 }
 
+// GitHub deletes job logs after about 90 days, so one missing log must not stop the report.
+function jobLog(gh, repo, id) {
+  try {
+    return { lines: extractErrors(cleanLog(gh(["api", "--allow-escape-sequences", `repos/${repo}/actions/jobs/${id}/logs`]))) };
+  } catch (err) {
+    return { lines: [], logError: String(err.stderr || err.message).trim().split("\n")[0] };
+  }
+}
+
 export function analyze(gh, repo, target) {
   const jobs = allJobs(gh, repo, target.id);
   const judge = evidence(gh, repo, target, jobs);
@@ -74,7 +83,7 @@ export function analyze(gh, repo, target) {
       url: job.html_url,
       step: job.steps?.find((s) => FAILED.includes(s.conclusion))?.name ?? null,
       ...judge(job),
-      lines: extractErrors(cleanLog(gh(["api", "--allow-escape-sequences", `repos/${repo}/actions/jobs/${job.id}/logs`]))),
+      ...jobLog(gh, repo, job.id),
     })),
   };
 }
@@ -104,7 +113,8 @@ export function render(report) {
   if (!report.jobs.length) out.push("", "No failed jobs in any attempt.");
   for (const job of report.jobs) {
     out.push("", `FAILED ${job.name}  attempt ${job.attempt}${job.step ? `  step: ${job.step}` : ""}`, `  ${job.verdict}: ${job.evidence}`, `  ${job.url}`, "");
-    out.push(...(job.lines.length ? job.lines : ["(no error lines found in the log)"]).map((l) => `    ${l}`));
+    const empty = job.logError ? `(log unavailable: ${job.logError})` : "(no error lines found in the log)";
+    out.push(...(job.lines.length ? job.lines : [empty]).map((l) => `    ${l}`));
   }
   if (report.rerun) out.push("", renderRerun(report.rerun));
   return out.join("\n");
