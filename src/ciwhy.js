@@ -111,7 +111,7 @@ export async function rerun(gh, repo, target, names, { sleep = delay, intervalMs
 
 export function render(report) {
   const { run } = report;
-  const out = [`${report.repo}  ${run.name} run ${run.id}  ${run.branch} ${run.sha.slice(0, 7)}  ${run.attempts} attempt${run.attempts === 1 ? "" : "s"}, ${run.conclusion}`, run.url];
+  const out = [`${report.repo}  ${run.name} run ${run.id}  ${run.branch} ${run.sha.slice(0, 7)}  ${run.attempts} attempt${run.attempts === 1 ? "" : "s"}, ${run.conclusion ?? "in progress"}`, run.url];
   if (!report.jobs.length) out.push("", "No failed jobs in any attempt.");
   for (const job of report.jobs) {
     out.push("", `FAILED ${job.name}  attempt ${job.attempt}${job.step ? `  step: ${job.step}` : ""}`, `  ${job.verdict}: ${job.evidence}`, `  ${job.url}`, "");

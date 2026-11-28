@@ -53,6 +53,7 @@ test("a job that passed on a later attempt of the run is flaky", () => {
   assert.ok(job.lines.includes("# widget: spawnSync unzip EPIPE"));
   assert.ok(calls.includes("api --allow-escape-sequences repos/acme/widget/actions/jobs/1001/logs"));
   assert.match(render(report), /FAILED test \(macos-latest, 20\)  attempt 1  step: Run npm test\n  flaky: passed on attempt 2 of this run/);
+  assert.match(render({ ...report, run: { ...report.run, conclusion: null } }), /2 attempts, in progress\n/);
 });
 
 test("verdicts use the same commit and the previous default branch run", () => {
