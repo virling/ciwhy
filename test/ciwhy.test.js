@@ -155,9 +155,10 @@ test("comment.sh updates the existing ciwhy comment or creates one", () => {
   const patched = runComment({ PRS: "7" }, { comments: [bot(3), { id: 4, body: "hi", user: { type: "Bot" } }, bot(5)] });
   assert.equal(patched[0], 'api repos/acme/widget/issues/7/comments --paginate --jq .[] | select(.user.type == "Bot" and (.body | startswith("<!-- ciwhy -->"))) | .id');
   assert.ok(patched[1].startsWith("api -X PATCH repos/acme/widget/issues/comments/5 -F body=@"));
-  const posted = runComment({ PRS: "" }, { commits: [{ number: 42 }], comments: [] });
-  assert.equal(posted[0], "api repos/acme/widget/commits/abc/pulls --jq .[].number");
+  const posted = runComment({ PRS: "" }, { commits: [{ number: 41, state: "closed" }, { number: 42, state: "open" }], comments: [] });
+  assert.equal(posted[0], 'api repos/acme/widget/commits/abc/pulls --jq .[] | select(.state == "open") | .number');
   assert.ok(posted[2].startsWith("api -X POST repos/acme/widget/issues/42/comments -F body=@"));
+  assert.equal(posted.length, 3);
 });
 
 test("comment.sh leaves a marker comment from a person alone", () => {
