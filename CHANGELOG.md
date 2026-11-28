@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- Comments now reach pull requests from forks. GitHub leaves `workflow_run.pull_requests` empty for them, so the action also looks up open pull requests by head `owner:branch` and keeps the one whose head is the failed commit.
+
 ## [0.2.0] - 2026-11-27
 
 ### Added
