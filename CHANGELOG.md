@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- The Action only updates comments posted by a bot that start with the ciwhy marker, never a comment written by a person.
+- Run, job, step and branch names are put in code in the comment, so names from a fork cannot add mentions, links or images.
+- Every page of a run's jobs is read, so failures in large matrices and reruns are not dropped.
+- Runs that timed out count when finding the latest failure.
+- The push fallback comments only on open pull requests, and the Action warns when it finds none.
+- A detached HEAD is reported as a usage error instead of "No failed runs for branch HEAD".
+- Text output shows "in progress" instead of "null" for a running workflow.
+- Prerelease versions publish under the `next` npm tag.
+
 ## [0.2.1] - 2026-11-28
 
 ### Fixed
