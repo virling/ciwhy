@@ -145,23 +145,30 @@ function runComment(env, replies) {
     { mode: 0o755 },
   );
   const script = new URL("../action/comment.sh", import.meta.url).pathname;
-  execFileSync("bash", [script], { env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, REPO, SHA: "abc", REPORT: path.join(dir, "report.md"), ...env } });
-  return fs.readFileSync(log, "utf8").trim().split("\n");
+  const out = execFileSync("bash", [script], { encoding: "utf8", env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, REPO, SHA: "abc", REPORT: path.join(dir, "report.md"), ...env } });
+  return { calls: fs.readFileSync(log, "utf8").trim().split("\n"), out };
 }
 
 const bot = (id, body = "<!-- ciwhy -->\nold") => ({ id, body, user: { type: "Bot" } });
 
 test("comment.sh updates the existing ciwhy comment or creates one", () => {
-  const patched = runComment({ PRS: "7" }, { comments: [bot(3), { id: 4, body: "hi", user: { type: "Bot" } }, bot(5)] });
+  const { calls: patched } = runComment({ PRS: "7" }, { comments: [bot(3), { id: 4, body: "hi", user: { type: "Bot" } }, bot(5)] });
   assert.equal(patched[0], 'api repos/acme/widget/issues/7/comments --paginate --jq .[] | select(.user.type == "Bot" and (.body | startswith("<!-- ciwhy -->"))) | .id');
   assert.ok(patched[1].startsWith("api -X PATCH repos/acme/widget/issues/comments/5 -F body=@"));
-  const posted = runComment({ PRS: "" }, { commits: [{ number: 41, state: "closed" }, { number: 42, state: "open" }], comments: [] });
+  const { calls: posted, out } = runComment({ PRS: "" }, { commits: [{ number: 41, state: "closed" }, { number: 42, state: "open" }], comments: [] });
   assert.equal(posted[0], 'api repos/acme/widget/commits/abc/pulls --jq .[] | select(.state == "open") | .number');
   assert.ok(posted[2].startsWith("api -X POST repos/acme/widget/issues/42/comments -F body=@"));
   assert.equal(posted.length, 3);
+  assert.equal(out, "");
 });
 
 test("comment.sh leaves a marker comment from a person alone", () => {
-  const calls = runComment({ PRS: "7" }, { comments: [{ id: 9, body: "<!-- ciwhy -->\nquoted", user: { type: "User" } }, bot(8, "see <!-- ciwhy -->")] });
+  const { calls } = runComment({ PRS: "7" }, { comments: [{ id: 9, body: "<!-- ciwhy -->\nquoted", user: { type: "User" } }, bot(8, "see <!-- ciwhy -->")] });
   assert.ok(calls[1].startsWith("api -X POST repos/acme/widget/issues/7/comments -F body=@"));
+});
+
+test("comment.sh warns when no pull request is found", () => {
+  const { calls, out } = runComment({ PRS: "" }, { commits: [] });
+  assert.equal(calls.length, 1);
+  assert.equal(out, "::warning::ciwhy found no pull request for abc\n");
 });
