@@ -9,6 +9,8 @@ export function gh(args) {
 }
 
 const api = (gh, path) => JSON.parse(gh(["api", path]));
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const noLines = (job) => (job.logError ? `(log unavailable: ${job.logError})` : "(no error lines found in the log)");
 
 export function parseTarget(arg) {
   if (/^\d+$/.test(arg)) return { id: arg };
@@ -110,12 +112,11 @@ export async function rerun(gh, repo, target, names, { sleep = delay, intervalMs
 
 export function render(report) {
   const { run } = report;
-  const out = [`${report.repo}  ${run.name} run ${run.id}  ${run.branch} ${run.sha.slice(0, 7)}  ${run.attempts} attempt${run.attempts === 1 ? "" : "s"}, ${run.conclusion ?? "in progress"}`, run.url];
+  const out = [`${report.repo}  ${run.name} run ${run.id}  ${run.branch} ${run.sha.slice(0, 7)}  ${plural(run.attempts, "attempt")}, ${run.conclusion ?? "in progress"}`, run.url];
   if (!report.jobs.length) out.push("", "No failed jobs in any attempt.");
   for (const job of report.jobs) {
     out.push("", `FAILED ${job.name}  attempt ${job.attempt}${job.step ? `  step: ${job.step}` : ""}`, `  ${job.verdict}: ${job.evidence}`, `  ${job.url}`, "");
-    const empty = job.logError ? `(log unavailable: ${job.logError})` : "(no error lines found in the log)";
-    out.push(...(job.lines.length ? job.lines : [empty]).map((l) => `    ${l}`));
+    out.push(...(job.lines.length ? job.lines : [noLines(job)]).map((l) => `    ${l}`));
   }
   if (report.rerun) out.push("", renderRerun(report.rerun));
   return out.join("\n");
@@ -154,8 +155,8 @@ export function renderMarkdown(report, limit = 65000) {
   const { run, jobs } = report;
   const out = [
     MARKER,
-    `### ciwhy: ${jobs.length} failed job${jobs.length === 1 ? "" : "s"} in [${span(run.name)} run ${run.id}](${run.url})`,
-    `${span(run.branch)} \`${run.sha.slice(0, 7)}\`, ${run.attempts} attempt${run.attempts === 1 ? "" : "s"}, ${run.conclusion ?? "in progress"}`,
+    `### ciwhy: ${plural(jobs.length, "failed job")} in [${span(run.name)} run ${run.id}](${run.url})`,
+    `${span(run.branch)} \`${run.sha.slice(0, 7)}\`, ${plural(run.attempts, "attempt")}, ${run.conclusion ?? "in progress"}`,
   ];
   if (!jobs.length) out.push("", "No failed jobs in any attempt.");
   if (report.rerun) out.push("", ...codeBlock(renderRerun(report.rerun).split("\n"), Infinity));
@@ -163,8 +164,7 @@ export function renderMarkdown(report, limit = 65000) {
   const many = jobs.length > 1;
   for (const job of jobs) {
     const title = (code) => `${code(job.name)}, attempt ${job.attempt}${job.step ? `, step: ${code(job.step)}` : ""}`;
-    const empty = job.logError ? `(log unavailable: ${job.logError})` : "(no error lines found in the log)";
-    const body = [`**${job.verdict}**: ${job.evidence}. [Job log](${job.url})`, "", ...codeBlock(job.lines.length ? job.lines : [empty], budget)];
+    const body = [`**${job.verdict}**: ${job.evidence}. [Job log](${job.url})`, "", ...codeBlock(job.lines.length ? job.lines : [noLines(job)], budget)];
     if (many) out.push("", `<details><summary><b>${title(htmlCode)}</b> (${job.verdict})</summary>`, "", ...body, "", "</details>");
     else out.push("", `**${title(span)}**`, "", ...body);
   }
