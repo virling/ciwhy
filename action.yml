@@ -38,5 +38,6 @@ runs:
         REPO: ${{ github.repository }}
         SHA: ${{ github.event.workflow_run.head_sha || github.event.pull_request.head.sha || github.sha }}
         PRS: ${{ github.event.pull_request.number || join(github.event.workflow_run.pull_requests.*.number, ' ') }}
+        HEAD: ${{ github.event.workflow_run.head_repository.owner.login }}:${{ github.event.workflow_run.head_branch }}
         REPORT: ${{ runner.temp }}/ciwhy.md
       run: bash "$GITHUB_ACTION_PATH/action/comment.sh"
