@@ -120,8 +120,8 @@ test("cli prints help and rejects bad usage", () => {
 test("renderMarkdown shows one job inline with the marker, verdict and log lines", () => {
   const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"]);
   const md = renderMarkdown(report);
-  assert.ok(md.startsWith("<!-- ciwhy -->\n### ciwhy: 1 failed job in [ci run 100]("));
-  assert.match(md, /\*\*test \(macos-latest, 20\), attempt 1, step: Run npm test\*\*\n\n\*\*flaky\*\*: passed on attempt 2 of this run\. \[Job log\]\(/);
+  assert.ok(md.startsWith("<!-- ciwhy -->\n### ciwhy: 1 failed job in [`ci` run 100]("));
+  assert.match(md, /\*\*`test \(macos-latest, 20\)`, attempt 1, step: `Run npm test`\*\*\n\n\*\*flaky\*\*: passed on attempt 2 of this run\. \[Job log\]\(/);
   assert.match(md, /```text\n[^]*# widget: spawnSync unzip EPIPE[^]*\n```$/);
   assert.doesNotMatch(md, /<details>/);
 });
@@ -130,7 +130,7 @@ test("renderMarkdown folds several jobs and stays under the limit", () => {
   const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/200"]);
   const md = renderMarkdown(report);
   assert.equal(md.match(/<details><summary>/g).length, 3);
-  assert.match(md, /<summary><b>lint, attempt 1, step: Lint<\/b> \(new failure\)<\/summary>/);
+  assert.match(md, /<summary><b><code>lint<\/code>, attempt 1, step: <code>Lint<\/code><\/b> \(new failure\)<\/summary>/);
   const big = { ...report, jobs: report.jobs.map((j) => ({ ...j, lines: Array.from({ length: 5000 }, (_, i) => `line ${i} ${"x".repeat(40)}`) })) };
   const cut = renderMarkdown(big);
   assert.ok(cut.length < 65536, `length ${cut.length}`);
@@ -141,6 +141,20 @@ test("renderMarkdown uses a longer fence when log lines contain backticks", () =
   const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"]);
   report.jobs[0].lines = ["see ```js block```"];
   assert.match(renderMarkdown(report), /````text\nsee ```js block```\n````/);
+});
+
+test("renderMarkdown puts names from the run in code", () => {
+  const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"]);
+  report.run.branch = "x`@acme/team";
+  report.jobs[0].name = "@acme/team ![a](https://x/a.png)";
+  report.jobs[0].step = "`<b>`";
+  const one = renderMarkdown(report);
+  assert.match(one, /\n``x`@acme\/team`` `aaaaaaa`, /);
+  assert.match(one, /\*\*`@acme\/team !\[a\]\(https:\/\/x\/a\.png\)`, attempt 1, step: `` `<b>` ``\*\*/);
+  const two = renderMarkdown({ ...report, jobs: [report.jobs[0], report.jobs[0]] });
+  assert.match(two, /<summary><b><code>@acme\/team !\[a\]\(https:\/\/x\/a\.png\)<\/code>, attempt 1, step: <code>`&lt;b&gt;`<\/code><\/b>/);
+  report.rerun = { attempt: 3, conclusion: "failure", jobs: [{ name: "```", conclusion: "failure", verdict: "failed again" }] };
+  assert.match(renderMarkdown(report), /\n````text\nRe-run attempt 3: failure\n  ```: failure \(failed again\)\n````\n/);
 });
 
 function runComment(env, replies) {

@@ -142,24 +142,31 @@ function codeBlock(lines, budget) {
   return [fence + "text", ...kept, fence];
 }
 
+function span(s) {
+  const ticks = "`".repeat(Math.max(0, ...(s.match(/`+/g) || []).map((t) => t.length)) + 1);
+  return /^`|`$/.test(s) ? `${ticks} ${s} ${ticks}` : ticks + s + ticks;
+}
+
+const htmlCode = (s) => `<code>${s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code>`;
+
 // GitHub rejects comments over 65536 characters.
 export function renderMarkdown(report, limit = 65000) {
   const { run, jobs } = report;
   const out = [
     MARKER,
-    `### ciwhy: ${jobs.length} failed job${jobs.length === 1 ? "" : "s"} in [${run.name} run ${run.id}](${run.url})`,
-    `\`${run.branch}\` \`${run.sha.slice(0, 7)}\`, ${run.attempts} attempt${run.attempts === 1 ? "" : "s"}, ${run.conclusion ?? "in progress"}`,
+    `### ciwhy: ${jobs.length} failed job${jobs.length === 1 ? "" : "s"} in [${span(run.name)} run ${run.id}](${run.url})`,
+    `${span(run.branch)} \`${run.sha.slice(0, 7)}\`, ${run.attempts} attempt${run.attempts === 1 ? "" : "s"}, ${run.conclusion ?? "in progress"}`,
   ];
   if (!jobs.length) out.push("", "No failed jobs in any attempt.");
-  if (report.rerun) out.push("", "```text", renderRerun(report.rerun), "```");
+  if (report.rerun) out.push("", ...codeBlock(renderRerun(report.rerun).split("\n"), Infinity));
   const budget = Math.floor((limit - out.join("\n").length) / Math.max(1, jobs.length)) - 1000;
   const many = jobs.length > 1;
   for (const job of jobs) {
-    const title = `${job.name}, attempt ${job.attempt}${job.step ? `, step: ${job.step}` : ""}`;
+    const title = (code) => `${code(job.name)}, attempt ${job.attempt}${job.step ? `, step: ${code(job.step)}` : ""}`;
     const empty = job.logError ? `(log unavailable: ${job.logError})` : "(no error lines found in the log)";
     const body = [`**${job.verdict}**: ${job.evidence}. [Job log](${job.url})`, "", ...codeBlock(job.lines.length ? job.lines : [empty], budget)];
-    if (many) out.push("", `<details><summary><b>${title}</b> (${job.verdict})</summary>`, "", ...body, "", "</details>");
-    else out.push("", `**${title}**`, "", ...body);
+    if (many) out.push("", `<details><summary><b>${title(htmlCode)}</b> (${job.verdict})</summary>`, "", ...body, "", "</details>");
+    else out.push("", `**${title(span)}**`, "", ...body);
   }
   return out.join("\n");
 }
