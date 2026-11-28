@@ -134,13 +134,14 @@ test("renderMarkdown uses a longer fence when log lines contain backticks", () =
   assert.match(renderMarkdown(report), /````text\nsee ```js block```\n````/);
 });
 
-function runComment(env, existing) {
+function runComment(env, replies) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ciwhy-"));
   const log = path.join(dir, "gh.log");
   fs.writeFileSync(path.join(dir, "report.md"), "<!-- ciwhy -->\nreport");
+  for (const [name, body] of Object.entries(replies)) fs.writeFileSync(path.join(dir, `${name}.json`), JSON.stringify(body));
   fs.writeFileSync(
     path.join(dir, "gh"),
-    `#!/usr/bin/env bash\necho "$*" >> "${log}"\ncase "$*" in\n  *commits/*/pulls*) echo 42 ;;\n  *--paginate*) printf '%s\\n' ${existing.join(" ")} ;;\nesac\n`,
+    `#!/usr/bin/env bash\necho "$*" >> "${log}"\ncase "$*" in\n  *commits/*/pulls*) f=commits ;;\n  *pulls\\?state=open*) f=open ;;\n  *--paginate*) f=comments ;;\n  *) exit 0 ;;\nesac\nwhile [ "$1" != --jq ]; do shift; done\njq -r "$2" "${dir}/$f.json"\n`,
     { mode: 0o755 },
   );
   const script = new URL("../action/comment.sh", import.meta.url).pathname;
@@ -148,11 +149,18 @@ function runComment(env, existing) {
   return fs.readFileSync(log, "utf8").trim().split("\n");
 }
 
+const bot = (id, body = "<!-- ciwhy -->\nold") => ({ id, body, user: { type: "Bot" } });
+
 test("comment.sh updates the existing ciwhy comment or creates one", () => {
-  const patched = runComment({ PRS: "7" }, ["3", "5"]);
-  assert.equal(patched[0], "api repos/acme/widget/issues/7/comments --paginate --jq .[] | select(.body | contains(\"<!-- ciwhy -->\")) | .id");
+  const patched = runComment({ PRS: "7" }, { comments: [bot(3), { id: 4, body: "hi", user: { type: "Bot" } }, bot(5)] });
+  assert.equal(patched[0], 'api repos/acme/widget/issues/7/comments --paginate --jq .[] | select(.user.type == "Bot" and (.body | startswith("<!-- ciwhy -->"))) | .id');
   assert.ok(patched[1].startsWith("api -X PATCH repos/acme/widget/issues/comments/5 -F body=@"));
-  const posted = runComment({ PRS: "" }, []);
+  const posted = runComment({ PRS: "" }, { commits: [{ number: 42 }], comments: [] });
   assert.equal(posted[0], "api repos/acme/widget/commits/abc/pulls --jq .[].number");
   assert.ok(posted[2].startsWith("api -X POST repos/acme/widget/issues/42/comments -F body=@"));
+});
+
+test("comment.sh leaves a marker comment from a person alone", () => {
+  const calls = runComment({ PRS: "7" }, { comments: [{ id: 9, body: "<!-- ciwhy -->\nquoted", user: { type: "User" } }, bot(8, "see <!-- ciwhy -->")] });
+  assert.ok(calls[1].startsWith("api -X POST repos/acme/widget/issues/7/comments -F body=@"));
 });
