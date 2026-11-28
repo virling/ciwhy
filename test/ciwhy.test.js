@@ -39,6 +39,8 @@ test("findRun resolves ids, branches and pull requests", () => {
   assert.equal(findRun(gh, REPO, { branch: "feature/x" }).id, 200);
   assert.equal(findRun(gh, REPO, { pr: "7" }).id, 200);
   assert.equal(findRun(gh, REPO, { branch: "quiet" }), null);
+  const timedOut = fakeGh({ "repos/acme/widget/actions/runs?branch=quiet&status=timed_out&per_page=1": { workflow_runs: [{ id: 210, created_at: "2026-03-16T00:00:00Z" }] } });
+  assert.equal(findRun(timedOut.gh, REPO, { branch: "quiet" }).id, 210);
 });
 
 test("a job that passed on a later attempt of the run is flaky", () => {

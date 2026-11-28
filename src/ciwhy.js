@@ -23,7 +23,8 @@ export function currentRepo(gh) {
 export function findRun(gh, repo, { id, pr, branch }) {
   if (id) return api(gh, `repos/${repo}/actions/runs/${id}`);
   const filter = pr ? `head_sha=${api(gh, `repos/${repo}/pulls/${pr}`).head.sha}` : `branch=${encodeURIComponent(branch)}`;
-  return api(gh, `repos/${repo}/actions/runs?${filter}&status=failure&per_page=1`).workflow_runs[0] || null;
+  const runs = FAILED.flatMap((status) => api(gh, `repos/${repo}/actions/runs?${filter}&status=${status}&per_page=1`).workflow_runs);
+  return runs.sort((a, b) => b.created_at.localeCompare(a.created_at))[0] || null;
 }
 
 const jobsAt = (gh, path) => JSON.parse(gh(["api", "--paginate", "--slurp", path])).flatMap((page) => page.jobs);

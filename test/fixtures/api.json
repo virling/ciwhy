@@ -14,9 +14,12 @@
       { "id": 1101, "name": "test (macos-latest, 20)", "run_attempt": 2, "conclusion": "success", "html_url": "https://github.com/acme/widget/actions/runs/100/job/1101", "steps": [] }
     ]
   },
-  "repos/acme/widget/actions/runs?branch=feature%2Fx&status=failure&per_page=1": { "workflow_runs": [{ "id": 200 }] },
+  "repos/acme/widget/actions/runs?branch=feature%2Fx&status=failure&per_page=1": { "workflow_runs": [{ "id": 200, "created_at": "2026-03-15T10:00:00Z" }] },
+  "repos/acme/widget/actions/runs?branch=feature%2Fx&status=timed_out&per_page=1": { "workflow_runs": [{ "id": 190, "created_at": "2026-03-15T09:00:00Z" }] },
   "repos/acme/widget/actions/runs?branch=quiet&status=failure&per_page=1": { "workflow_runs": [] },
-  "repos/acme/widget/actions/runs?head_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&status=failure&per_page=1": { "workflow_runs": [{ "id": 200 }] },
+  "repos/acme/widget/actions/runs?branch=quiet&status=timed_out&per_page=1": { "workflow_runs": [] },
+  "repos/acme/widget/actions/runs?head_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&status=failure&per_page=1": { "workflow_runs": [{ "id": 200, "created_at": "2026-03-15T10:00:00Z" }] },
+  "repos/acme/widget/actions/runs?head_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&status=timed_out&per_page=1": { "workflow_runs": [] },
   "repos/acme/widget/actions/runs/200": {
     "id": 200, "name": "ci", "workflow_id": 7, "run_attempt": 1, "status": "completed", "conclusion": "failure",
     "head_branch": "feature/x", "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "created_at": "2026-03-15T10:00:00Z",
