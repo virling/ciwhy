@@ -1,6 +1,6 @@
 {
   "name": "@virling/ciwhy",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Why did GitHub Actions fail, and is it flaky? One command, using the gh CLI",
   "type": "module",
   "bin": {
