@@ -172,3 +172,11 @@ test("comment.sh warns when no pull request is found", () => {
   assert.equal(calls.length, 1);
   assert.equal(out, "::warning::ciwhy found no pull request for abc\n");
 });
+
+test("comment.sh finds a fork pull request by owner and branch", () => {
+  const open = [{ number: 6, head: { sha: "old" } }, { number: 7, head: { sha: "abc" } }];
+  const { calls } = runComment({ PRS: "", HEAD: "fork:feat" }, { commits: [], open, comments: [] });
+  assert.equal(calls[1], 'api repos/acme/widget/pulls?state=open&head=fork:feat --jq .[] | select(.head.sha == "abc") | .number');
+  assert.ok(calls[3].startsWith("api -X POST repos/acme/widget/issues/7/comments -F body=@"));
+  assert.equal(calls.length, 4);
+});
