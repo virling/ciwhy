@@ -126,7 +126,7 @@ export function renderRerun(r) {
   return [head, ...r.jobs.map((j) => `  ${j.name}: ${j.conclusion} (${j.verdict})`)].join("\n");
 }
 
-export const MARKER = "<!-- ciwhy -->";
+const MARKER = "<!-- ciwhy -->";
 
 function codeBlock(lines, budget) {
   const kept = [];
