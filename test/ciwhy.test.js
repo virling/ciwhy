@@ -148,6 +148,17 @@ test("cli reports no failed run and prints the Markdown the Action posts", () =>
   assert.equal(md.stdout, renderMarkdown(analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"])) + "\n");
 });
 
+test("cli asks for a target on a detached HEAD", () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "ciwhy-"));
+  const git = (...args) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd });
+  git("init", "-q");
+  git("commit", "-q", "--allow-empty", "-m", "x");
+  git("checkout", "-q", "--detach");
+  const res = runCli(["--repo", REPO], cwd);
+  assert.equal(res.status, 2);
+  assert.match(res.stderr, /^ciwhy: detached HEAD; pass --branch, --pr or a run id\n/);
+});
+
 test("renderMarkdown shows one job inline with the marker, verdict and log lines", () => {
   const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"]);
   const md = renderMarkdown(report);

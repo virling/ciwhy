@@ -49,6 +49,7 @@ async function main() {
   if (flags.timeout && !(Number(flags.timeout) > 0)) usage(`not a number of minutes: ${flags.timeout}`);
   const repo = flags.repo || target.repo || currentRepo(gh);
   const branch = flags.branch || (!target.id && !flags.pr && execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim());
+  if (branch === "HEAD") usage("detached HEAD; pass --branch, --pr or a run id");
   const run = findRun(gh, repo, { id: target.id, pr: flags.pr, branch });
   if (!run) {
     const where = flags.pr ? `pull request #${flags.pr}` : `branch ${branch}`;
