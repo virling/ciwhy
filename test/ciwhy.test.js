@@ -119,6 +119,35 @@ test("cli prints help and rejects bad usage", () => {
   assert.equal(spawnSync("node", [bin, "not-a-run"], { encoding: "utf8" }).status, 2);
 });
 
+function runCli(args, cwd) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ciwhy-"));
+  const fixtures = new URL("fixtures/", import.meta.url).pathname;
+  fs.writeFileSync(
+    path.join(dir, "gh"),
+    `#!/usr/bin/env node
+const fs = require("fs");
+const args = process.argv.slice(2);
+const log = args[1] === "--allow-escape-sequences" && args[2].match(/jobs\\/(\\d+)\\/logs$/);
+const body = log ? null : JSON.parse(fs.readFileSync(${JSON.stringify(fixtures + "api.json")}, "utf8"))[args[args.length - 1]];
+if (log) process.stdout.write(fs.readFileSync(${JSON.stringify(fixtures)} + ${JSON.stringify(LOGS)}[log[1]], "utf8"));
+else if (body === undefined) process.exit(1);
+else console.log(JSON.stringify(args.includes("--slurp") ? [body] : body));
+`,
+    { mode: 0o755 },
+  );
+  const bin = new URL("../bin/ciwhy.js", import.meta.url).pathname;
+  return spawnSync("node", [bin, ...args], { encoding: "utf8", cwd, env: { ...process.env, PATH: `${dir}:${process.env.PATH}` } });
+}
+
+test("cli reports no failed run and prints the Markdown the Action posts", () => {
+  const none = runCli(["--branch", "quiet", "--repo", REPO]);
+  assert.deepEqual([none.status, none.stdout], [0, "No failed runs for branch quiet in acme/widget.\n"]);
+  assert.deepEqual(JSON.parse(runCli(["--branch", "quiet", "--repo", REPO, "--json"]).stdout), { repo: REPO, run: null, jobs: [] });
+  const md = runCli(["100", "--repo", REPO, "--markdown"]);
+  assert.equal(md.status, 0, md.stderr);
+  assert.equal(md.stdout, renderMarkdown(analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"])) + "\n");
+});
+
 test("renderMarkdown shows one job inline with the marker, verdict and log lines", () => {
   const report = analyze(fakeGh().gh, REPO, API["repos/acme/widget/actions/runs/100"]);
   const md = renderMarkdown(report);
