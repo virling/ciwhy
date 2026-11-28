@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- The Action pins `actions/setup-node` to a commit SHA.
+
 ## [0.2.2] - 2026-11-28
 
 ### Fixed
