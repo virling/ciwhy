@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-28
+
 ### Fixed
 
 - Comments now reach pull requests from forks. GitHub leaves `workflow_run.pull_requests` empty for them, so the action also looks up open pull requests by head `owner:branch` and keeps the one whose head is the failed commit.
@@ -33,7 +35,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - Flaky verdict per job: passed on a later attempt, passed on another run of the same commit, or new since the last default-branch run.
 - Pick a run by id, URL, `--pr` or `--branch`; `--rerun` re-runs failed jobs and reports the result; `--json` output.
 
-[Unreleased]: https://github.com/virling/ciwhy/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/virling/ciwhy/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/virling/ciwhy/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/virling/ciwhy/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/virling/ciwhy/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/virling/ciwhy/releases/tag/v0.1.0
