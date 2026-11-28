@@ -63,7 +63,6 @@ function evidence(gh, repo, target, jobs) {
   };
 }
 
-// GitHub deletes job logs after about 90 days, so one missing log must not stop the report.
 function jobLog(gh, repo, id) {
   try {
     return { lines: extractErrors(cleanLog(gh(["api", "--allow-escape-sequences", `repos/${repo}/actions/jobs/${id}/logs`]))) };
