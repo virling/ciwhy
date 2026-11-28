@@ -21,7 +21,8 @@ function fakeGh(extra = {}) {
     const path = args[args.length - 1];
     const body = extra[path] ?? API[path];
     if (args[0] !== "api" || body === undefined) throw new Error(`unexpected gh call: ${args.join(" ")}`);
-    return JSON.stringify(typeof body === "function" ? body() : body);
+    const reply = typeof body === "function" ? body() : body;
+    return JSON.stringify(args.includes("--slurp") && !Array.isArray(reply) ? [reply] : reply);
   };
   return { gh, calls };
 }
@@ -61,6 +62,14 @@ test("verdicts use the same commit and the previous default branch run", () => {
   assert.deepEqual([byName.build.verdict, byName.build.evidence], ["unknown", "no pass on this commit; failure on the previous main run 150"]);
   assert.deepEqual([byName["test (macos-latest, 20)"].verdict, byName["test (macos-latest, 20)"].evidence], ["flaky", "passed in run 201 on the same commit"]);
   assert.ok(byName.build.lines.includes("KeyError: 'VERSION'"));
+});
+
+test("jobs are read from every page", () => {
+  const target = API["repos/acme/widget/actions/runs/100"];
+  const pages = API["repos/acme/widget/actions/runs/100/jobs?filter=all&per_page=100"].jobs.map((j) => ({ jobs: [j] }));
+  const { gh, calls } = fakeGh({ "repos/acme/widget/actions/runs/100/jobs?filter=all&per_page=100": pages });
+  assert.equal(analyze(gh, REPO, target).jobs[0].verdict, "flaky");
+  assert.ok(calls.includes("api --paginate --slurp repos/acme/widget/actions/runs/100/jobs?filter=all&per_page=100"));
 });
 
 test("a missing job log is reported for that job and the rest still run", () => {

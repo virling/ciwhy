@@ -26,7 +26,8 @@ export function findRun(gh, repo, { id, pr, branch }) {
   return api(gh, `repos/${repo}/actions/runs?${filter}&status=failure&per_page=1`).workflow_runs[0] || null;
 }
 
-const allJobs = (gh, repo, id) => api(gh, `repos/${repo}/actions/runs/${id}/jobs?filter=all&per_page=100`).jobs;
+const jobsAt = (gh, path) => JSON.parse(gh(["api", "--paginate", "--slurp", path])).flatMap((page) => page.jobs);
+const allJobs = (gh, repo, id) => jobsAt(gh, `repos/${repo}/actions/runs/${id}/jobs?filter=all&per_page=100`);
 const passed = (jobs, name) => jobs.find((j) => j.name === name && j.conclusion === "success");
 
 function failedJobs(jobs) {
@@ -46,7 +47,7 @@ function evidence(gh, repo, target, jobs) {
     const branch = api(gh, `repos/${repo}`).default_branch;
     const prev = api(gh, `repos/${repo}/actions/workflows/${target.workflow_id}/runs?branch=${encodeURIComponent(branch)}&status=completed&per_page=20`)
       .workflow_runs.find((r) => r.id !== target.id && r.created_at < target.created_at);
-    return (previous = prev ? { run: prev, branch, jobs: api(gh, `repos/${repo}/actions/runs/${prev.id}/jobs?per_page=100`).jobs } : null);
+    return (previous = prev ? { run: prev, branch, jobs: jobsAt(gh, `repos/${repo}/actions/runs/${prev.id}/jobs?per_page=100`) } : null);
   };
   return (job) => {
     const later = jobs.find((j) => j.name === job.name && j.run_attempt > job.run_attempt && j.conclusion === "success");
@@ -94,7 +95,7 @@ export async function rerun(gh, repo, target, names, { sleep = delay, intervalMs
     await sleep(intervalMs);
     const r = api(gh, `repos/${repo}/actions/runs/${target.id}`);
     if (r.run_attempt <= target.run_attempt || r.status !== "completed") continue;
-    const jobs = api(gh, `repos/${repo}/actions/runs/${target.id}/attempts/${r.run_attempt}/jobs?per_page=100`).jobs;
+    const jobs = jobsAt(gh, `repos/${repo}/actions/runs/${target.id}/attempts/${r.run_attempt}/jobs?per_page=100`);
     return {
       attempt: r.run_attempt,
       conclusion: r.conclusion,
